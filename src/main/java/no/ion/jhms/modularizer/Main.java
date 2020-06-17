@@ -4,7 +4,7 @@ import java.io.PrintStream;
 
 public class Main {
     public static String helpText() {
-        return "Usage: modujar [OPTION...]\n" +
+        return "Usage: modjar [OPTION...]\n" +
                 "View and modify the module descriptor of a modular JAR\n" +
                 "\n" +
                 "Options:\n" +
