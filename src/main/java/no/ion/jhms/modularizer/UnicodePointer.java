@@ -101,30 +101,52 @@ public class UnicodePointer implements Iterable<Integer> {
     }
 
     public Optional<String> skipModuleName() {
+        try {
+            return skipPackageOrModuleName();
+        } catch (IllegalArgumentException e) {
+            throw new ErrorException("not a module name: " + toString());
+        }
+    }
+
+    public Optional<String> skipPackageName() {
+        try {
+            return skipPackageOrModuleName();
+        } catch (IllegalArgumentException e) {
+            throw new ErrorException("not a package name: " + toString());
+        }
+    }
+
+    private Optional<String> skipPackageOrModuleName() {
         int startIndex = index;
 
-        Optional<String> identifier = skipIdentifier();
-        if (identifier.isEmpty()) return Optional.empty();
+        Optional<String> firstIdentifier = skipIdentifier();
+        if (firstIdentifier.isEmpty()) {
+            return Optional.empty();
+        }
 
-        var compactModuleName = new StringBuilder(identifier.get().length() + size());
-        compactModuleName.append(identifier.get());
+        var compactPackageName = new StringBuilder();
+        compactPackageName.append(firstIdentifier.get());
 
         do {
+            int endIndex = index;
+
             skipWhitespace();
             if (eof() || get() != '.') {
-                return Optional.of(compactModuleName.toString());
+                index = endIndex;
+                return Optional.of(compactPackageName.toString());
             }
             inc();
+            compactPackageName.append('.');
 
-            compactModuleName.append('.');
+            skipWhitespace();
 
-            identifier = skipIdentifier();
+            Optional<String> identifier = skipIdentifier();
             if (identifier.isEmpty()) {
                 index = startIndex;
-                throw new IllegalArgumentException("expected module name: " + toString());
+                throw new ErrorException("not a package name: " + toString());
             }
 
-            compactModuleName.append(identifier.get());
+            compactPackageName.append(identifier.get());
         } while (true);
     }
 

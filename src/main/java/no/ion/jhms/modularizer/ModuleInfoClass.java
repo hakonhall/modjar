@@ -5,6 +5,9 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 public class ModuleInfoClass {
+    public static final int ACC_MODULE = 0x8000;
+    public static final int MAGIC = 0xCAFEBABE;
+
     private int magic;
     private int minorVersion;
     private int majorVersion;
@@ -33,6 +36,14 @@ public class ModuleInfoClass {
     public String getModuleName() {
         int moduleNameIndex = getAttributeInfos().getModuleAttribute().moduleNameIndex();
         return constantPool.resolveModuleName(moduleNameIndex);
+    }
+
+    public void setModuleName(String newModuleName) {
+        // It is probably safe to reuse the module info structure as there should be only one reference
+        // to self module, but we take no chances.
+        int utf8Index = constantPool.add(ConstantUtf8.fromString(newModuleName));
+        int moduleInfoIndex = constantPool.add(new ConstantModuleInfo(utf8Index));
+        getAttributeInfos().getModuleAttribute().setModuleNameIndex(moduleInfoIndex);
     }
 
     public void appendTo(Output output) {
@@ -64,13 +75,9 @@ public class ModuleInfoClass {
 
         var moduleAttribute = attributes.getModuleAttribute();
 
-        int index = moduleAttribute.moduleVersionIndex();
-        if (index == 0) {
-            index = constantPool.add(utf8);
-            moduleAttribute.setModuleVersionIndex(index);
-        } else {
-            constantPool.replace(index, utf8);
-        }
+        // TODO: support replacing/removal of existing UTF8 entry
+        int index = constantPool.add(utf8);
+        moduleAttribute.setModuleVersionIndex(index);
     }
 
     public void removeModuleVersion() {
@@ -88,6 +95,19 @@ public class ModuleInfoClass {
             // expressions.
             moduleAttribute.setModuleVersionIndex(0);
         }
+    }
+
+    public Optional<Requires> getRequires(String moduleName) {
+        ModuleAttribute moduleAttribute = attributes.getModuleAttribute();
+        for (var requires : moduleAttribute.requires()) {
+            int indexOfModuleName = requires.requiresIndex();
+            String requiresModuleName = constantPool.resolveModuleName(indexOfModuleName);
+            if (requiresModuleName.equals(moduleName)) {
+                return Optional.of(requires);
+            }
+        }
+
+        return Optional.empty();
     }
 
     public void setRequires(String moduleName, EnumSet<RequiresFlag> flags, Optional<Version> version) {
@@ -140,7 +160,7 @@ public class ModuleInfoClass {
             String moduleName = constantPool.resolveModuleName(requiresIndex);
             if (moduleName.equals(module)) {
                 if (RequiresFlag.MANDATED.hasFlag(requires.requiresFlags())) {
-                    throw new ErrorException("error: unable to remove mandated module: " + module);
+                    throw new ErrorException("unable to remove mandated module: " + module);
                 }
                 return true;
             } else {

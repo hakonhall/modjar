@@ -19,5 +19,6 @@ public enum RequiresFlag {
         return requiresFlags;
     }
 
+    public int value() { return flag; }
     public boolean hasFlag(int flags) { return (flags & flag) != 0; }
 }
