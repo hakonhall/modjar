@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ModuleInfoClassReader {
+
     private final byte[] bytes;
     private int offset = 0;
 
@@ -38,12 +39,16 @@ public class ModuleInfoClassReader {
 
     public ModuleInfoClass parse() {
         int magic = readU4();
+        if (magic != ModuleInfoClass.MAGIC) {
+            throw new BadModuleInfoException("Does not start with magic " + ModuleInfoClass.MAGIC);
+        }
+
         int minorVersion = readU2();
         int majorVersion = readU2();
         ConstantPool constantPool = constantPool();
 
         int accessFlag = readU2();
-        if (accessFlag != 0x8000) {
+        if (accessFlag != ModuleInfoClass.ACC_MODULE) {
             throw new BadModuleInfoException("Access flag not a module: " + accessFlag);
         }
 
@@ -92,15 +97,12 @@ public class ModuleInfoClassReader {
                 case "Module":
                     attributeInfos.addModuleAttribute(readModuleAttribute(attributeNameIndex, attributeLength));
                     break;
-                case "ModulePackages":
-                case "ModuleMainClass":
-                case "InnerClasses":
-                    attributeInfos.add(new GenericAttributeInfo(attributeNameIndex, attributeName, attributeLength, bytes, offset));
-                    offset += attributeLength;
-                    break;
                 case "SourceFile":
                     attributeInfos.addSourceFile(new SourceFileAttribute(attributeNameIndex, attributeLength, readU2()));
                     break;
+                case "ModulePackages":
+                case "ModuleMainClass":
+                case "InnerClasses":
                 case "SourceDebugExtension":
                 case "RuntimeVisibleAnnotations":
                 case "RuntimeInvisibleAnnotations":

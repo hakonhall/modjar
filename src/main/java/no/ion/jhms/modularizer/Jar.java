@@ -20,7 +20,7 @@ public class Jar {
         this.path = path;
         this.out = out;
         this.jarToolProvider = findFirst("jar")
-                .orElseThrow(() -> new ErrorException("error: no jar tool available"));
+                .orElseThrow(() -> new ErrorException("no jar tool available"));
     }
 
     public Path path() { return path; }
@@ -36,6 +36,12 @@ public class Jar {
     }
 
     public void updateModuleInfoClass(Path moduleInfoClassPath, Path jarPath) {
+        // Observed with a module declaration 'module foo {}':  The module-info.class matches that of
+        // MinimalModuleInfoClass::create, but after adding it to the jar with below command the constant
+        // pool entries are permuted and with 3 new entries related to ModulePackages (listing the packages
+        // in the JAR file).
+        //
+        // DO NOT EXPECT the original module-info.class ends up in the JAR file when adding one.
         jarToolProvider.run(out, out, "--update", "--file", jarPath.toString(), "-C",
                 moduleInfoClassPath.getParent().toString(), moduleInfoClassPath.getFileName().toString());
     }

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class ModuleAttribute extends AttributeInfo {
-    private final int moduleNameIndex;
+    private int moduleNameIndex;
     private final int moduleFlags;
     private int moduleVersionIndex;
     private List<Requires> requires = new ArrayList<>();
@@ -24,12 +24,14 @@ public class ModuleAttribute extends AttributeInfo {
         this.moduleVersionIndex = moduleVersionIndex;
     }
 
+
     public void addRequires(Requires requires) { this.requires.add(requires); }
     public void addExports(Exports exports) { this.exports.add(exports); }
     public void addOpens(Opens opens) { this.opens.add(opens); }
     public void addUses(int usesIndex) { this.usesIndices.add(usesIndex); }
     public void addProvides(Provides provides) { this.provides.add(provides); }
 
+    public void setModuleNameIndex(int moduleNameIndex) { this.moduleNameIndex = moduleNameIndex; }
     public void setModuleVersionIndex(int newModuleVersionIndex) { moduleVersionIndex = newModuleVersionIndex; }
 
     public int moduleNameIndex() { return moduleNameIndex; }

@@ -1,7 +1,7 @@
 package no.ion.jhms.modularizer;
 
-public class ErrorException extends RuntimeException {
+public class ErrorException extends MainException {
     public ErrorException(String message) {
-        super(message);
+        super("error: " + message);
     }
 }

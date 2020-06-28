@@ -19,11 +19,12 @@ public class ConstantPool {
         append(entry);
     }
 
-    public void replace(int index, ConstantUtf8 utf8) {
+    // TODO: This is probably always unsafe?
+    public void replaceUtf8Entry(int index, ConstantUtf8 utf8) {
         constantPool.put(index, utf8);
     }
 
-    /** 
+    /**
      * Append the entry to the constant pool and return its index, unless the entry already exist and in case
      * the existing index is returned. 
      */
@@ -67,7 +68,7 @@ public class ConstantPool {
     private ConstantUtf8 getUtf8Entry(int index) { return getEntry(index, ConstantUtf8.class, Constant.Utf8); }
     private ConstantClassInfo getClassInfoEntry(int index) { return getEntry(index, ConstantClassInfo.class, Constant.Class); }
     private ConstantPackageInfo getPackageInfoEntry(int index) { return getEntry(index, ConstantPackageInfo.class, Constant.Package); }
-    private ConstantModuleInfo getModuleInfoEntry(int index) { return getEntry(index, ConstantModuleInfo.class, Constant.Module); }
+    public ConstantModuleInfo getModuleInfoEntry(int index) { return getEntry(index, ConstantModuleInfo.class, Constant.Module); }
 
     private <T extends ConstantPoolEntry> T getEntry(int index, Class<T> clazz, Constant constant) {
         ConstantPoolEntry entry = constantPool.get(index);
