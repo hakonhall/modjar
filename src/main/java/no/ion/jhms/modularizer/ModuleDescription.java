@@ -26,6 +26,11 @@ public class ModuleDescription {
         public PrintStream out() { return out; }
     }
 
+    /**
+     * Writes a description of the modular JAR given by {@link Options#jarPath()}.
+     *
+     * @throws ErrorException if jar file is not a module
+     */
     public static void describeModule(PrintStream out, Options options) {
         new ModuleDescription(out, options).describe();
     }
